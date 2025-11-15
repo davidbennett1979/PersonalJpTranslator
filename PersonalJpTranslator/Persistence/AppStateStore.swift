@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import OSLog
 
 @MainActor
 final class AppStateStore: ObservableObject {
@@ -28,6 +29,7 @@ final class AppStateStore: ObservableObject {
 
     private let fileURL: URL
     private let fileManager: FileManager
+    private let logger = Logger(subsystem: "PersonalJpTranslator", category: "Persistence")
 
     init(fileManager: FileManager = .default, fileName: String = "AppState.json") {
         self.fileManager = fileManager
@@ -42,7 +44,7 @@ final class AppStateStore: ObservableObject {
             resourceValues.isExcludedFromBackup = true
             try directory.setResourceValues(resourceValues)
         } catch {
-            print("Failed to prepare persistence directory: \(error)")
+            logger.error("Failed to prepare persistence directory: \(error.localizedDescription)")
         }
 
         self.fileURL = directory.appendingPathComponent(fileName)
@@ -64,16 +66,17 @@ final class AppStateStore: ObservableObject {
             let url = fileURL
             let directory = fileURL.deletingLastPathComponent()
             let fm = fileManager
+            let log = logger
             Task.detached(priority: .background) {
                 do {
                     try fm.createDirectory(at: directory, withIntermediateDirectories: true)
                     try data.write(to: url, options: [.atomic])
                 } catch {
-                    print("Failed to persist app state: \(error)")
+                    log.error("Failed to persist app state: \(error.localizedDescription)")
                 }
             }
         } catch {
-            print("Encoding error: \(error)")
+            logger.error("Encoding error: \(error.localizedDescription)")
         }
     }
 

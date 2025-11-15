@@ -82,6 +82,7 @@ struct ChatView: View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $viewModel.inputText)
+                    .scrollContentBackground(.hidden)
                     .frame(minHeight: 80, maxHeight: 160)
                     .padding(8)
                     .background(Color(.secondarySystemBackground))
@@ -92,6 +93,8 @@ struct ChatView: View {
                         .foregroundStyle(Color.secondary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
                 }
             }
 

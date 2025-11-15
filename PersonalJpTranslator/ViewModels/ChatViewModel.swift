@@ -117,7 +117,7 @@ final class ChatViewModel: ObservableObject {
             let assistantMessage = ChatMessage(role: .assistant, text: responseText, skillHints: skillHints)
             append(message: assistantMessage)
         } catch is CancellationError {
-            // User initiated cancellation; no alert
+            errorMessage = "Request cancelled."
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -150,7 +150,6 @@ final class ChatViewModel: ObservableObject {
         let recentHistory = Array(history.suffix(6))
 
         var guidance = [
-            "User request: \(userMessage.text)",
             "Detected intent: \(intent.summary)",
             "Tasks:",
             "- detect what the user needs (translation, explanation, rewrite, or feedback).",
@@ -160,16 +159,9 @@ final class ChatViewModel: ObservableObject {
         if let snippet = profile.lastFeedbackSnippet, !snippet.isEmpty {
             guidance.append("Remember the user liked responses similar to: \(snippet)")
         }
-        let instructionBlock = guidance.joined(separator: "\n")
-        let combinedUserText = """
-\(userMessage.text)
+        let instructionMessage = ChatMessage(role: .system, text: guidance.joined(separator: " "))
 
----
-\(instructionBlock)
-"""
-        let enrichedUserMessage = ChatMessage(role: .user, text: combinedUserText)
-
-        return [systemMessage] + recentHistory + [enrichedUserMessage]
+        return [systemMessage, instructionMessage] + recentHistory + [userMessage]
     }
 }
 
