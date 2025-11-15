@@ -1,0 +1,5 @@
+CODEX NEXT STEP LIST – TO EVALUATE
+- Continue refining the prompt-construction logic so the assistant can better detect task type (translation, rewrite, cultural context) and anchor its tone based on rated responses.
+- Persist and surface richer history insights (e.g., summarize highly rated answers, show recent disliked topics) to reinforce personalization in both UI and prompts.
+- Add automated tests (unit tests for AppStateStore, prompt builder, and rating logic) to guard against regressions as features evolve.
+- Build more robust error handling and user feedback, such as retry options and clearer status indicators when the OpenAI API fails.

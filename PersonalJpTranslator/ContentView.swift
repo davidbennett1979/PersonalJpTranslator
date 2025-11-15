@@ -8,17 +8,30 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject private var chatViewModel: ChatViewModel
+    @EnvironmentObject private var settingsViewModel: SettingsViewModel
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            ChatView(viewModel: chatViewModel)
+                .tabItem {
+                    Label("Chat", systemImage: "bubble.left.and.bubble.right.fill")
+                }
+
+            SettingsView()
+                .environmentObject(settingsViewModel)
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape.fill")
+                }
         }
-        .padding()
     }
 }
 
 #Preview {
+    let store = AppStateStore()
+    let chatVM = ChatViewModel(store: store, client: OpenAIClient())
+    let settingsVM = SettingsViewModel(store: store)
     ContentView()
+        .environmentObject(chatVM)
+        .environmentObject(settingsVM)
 }
