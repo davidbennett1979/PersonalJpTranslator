@@ -27,9 +27,24 @@ final class AppStateStore: ObservableObject {
     }()
 
     private let fileURL: URL
+    private let fileManager: FileManager
 
     init(fileManager: FileManager = .default, fileName: String = "AppState.json") {
-        let directory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first ?? URL(fileURLWithPath: NSTemporaryDirectory())
+        self.fileManager = fileManager
+        let baseDirectory = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
+            ?? URL(fileURLWithPath: NSTemporaryDirectory())
+        var directory = baseDirectory.appendingPathComponent("PersonalJpTranslator", isDirectory: true)
+
+        do {
+            try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+            var resourceValues = URLResourceValues()
+            resourceValues.isExcludedFromBackup = true
+            try directory.setResourceValues(resourceValues)
+        } catch {
+            print("Failed to prepare persistence directory: \(error)")
+        }
+
         self.fileURL = directory.appendingPathComponent(fileName)
 
         if let data = try? Data(contentsOf: fileURL),
@@ -47,8 +62,11 @@ final class AppStateStore: ObservableObject {
         do {
             let data = try encoder.encode(state)
             let url = fileURL
+            let directory = fileURL.deletingLastPathComponent()
+            let fm = fileManager
             Task.detached(priority: .background) {
                 do {
+                    try fm.createDirectory(at: directory, withIntermediateDirectories: true)
                     try data.write(to: url, options: [.atomic])
                 } catch {
                     print("Failed to persist app state: \(error)")

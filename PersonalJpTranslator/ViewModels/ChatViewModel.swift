@@ -19,6 +19,7 @@ final class ChatViewModel: ObservableObject {
     private let store: AppStateStore
     private let client: OpenAIClientProtocol
     private var cancellables = Set<AnyCancellable>()
+    private var sendTask: Task<Void, Never>?
 
     init(store: AppStateStore, client: OpenAIClientProtocol) {
         self.store = store
@@ -45,6 +46,8 @@ final class ChatViewModel: ObservableObject {
         let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
+        sendTask?.cancel()
+
         let intent = inferIntent(for: trimmed)
         let skillHints = skillHints(for: intent)
         let userMessage = ChatMessage(role: .user, text: trimmed, skillHints: skillHints)
@@ -56,8 +59,9 @@ final class ChatViewModel: ObservableObject {
         }
         store.save()
 
-        Task {
-            await requestResponse(for: userMessage, intent: intent, skillHints: skillHints)
+        sendTask = Task { [weak self] in
+            guard let self else { return }
+            await self.requestResponse(for: userMessage, intent: intent, skillHints: skillHints)
         }
     }
 
@@ -89,6 +93,7 @@ final class ChatViewModel: ObservableObject {
         store.updateConversation { conversation in
             conversation = Conversation()
         }
+        sendTask?.cancel()
         store.save()
     }
 
@@ -101,13 +106,18 @@ final class ChatViewModel: ObservableObject {
 
     private func requestResponse(for userMessage: ChatMessage, intent: InteractionIntent, skillHints: [PersonaSkill]) async {
         isLoading = true
-        defer { isLoading = false }
+        defer {
+            isLoading = false
+            sendTask = nil
+        }
 
         do {
             let context = buildMessages(for: userMessage, intent: intent)
             let responseText = try await client.sendChat(messages: context)
             let assistantMessage = ChatMessage(role: .assistant, text: responseText, skillHints: skillHints)
             append(message: assistantMessage)
+        } catch is CancellationError {
+            // User initiated cancellation; no alert
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -150,7 +160,14 @@ final class ChatViewModel: ObservableObject {
         if let snippet = profile.lastFeedbackSnippet, !snippet.isEmpty {
             guidance.append("Remember the user liked responses similar to: \(snippet)")
         }
-        let enrichedUserMessage = ChatMessage(role: .user, text: guidance.joined(separator: "\n"))
+        let instructionBlock = guidance.joined(separator: "\n")
+        let combinedUserText = """
+\(userMessage.text)
+
+---
+\(instructionBlock)
+"""
+        let enrichedUserMessage = ChatMessage(role: .user, text: combinedUserText)
 
         return [systemMessage] + recentHistory + [enrichedUserMessage]
     }

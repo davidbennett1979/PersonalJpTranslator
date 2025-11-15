@@ -3,3 +3,7 @@ CODEX NEXT STEP LIST – TO EVALUATE
 - Persist and surface richer history insights (e.g., summarize highly rated answers, show recent disliked topics) to reinforce personalization in both UI and prompts.
 - Add automated tests (unit tests for AppStateStore, prompt builder, and rating logic) to guard against regressions as features evolve.
 - Build more robust error handling and user feedback, such as retry options and clearer status indicators when the OpenAI API fails.
+- Enhance OpenAIClient resiliency: configurable timeouts, basic retry/backoff, clearer error diagnostics.
+- Improve secret management for production builds (xcconfig or Keychain) so release builds don’t silently fail when env vars are missing.
+- Add conversation management (naming/switching) and history trimming/token usage tracking.
+- Stream assistant responses and offer import/export of personalization data to sync across devices.

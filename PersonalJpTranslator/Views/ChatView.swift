@@ -8,11 +8,7 @@
 import SwiftUI
 
 struct ChatView: View {
-    @StateObject private var viewModel: ChatViewModel
-
-    init(viewModel: ChatViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
-    }
+    @ObservedObject var viewModel: ChatViewModel
 
     var body: some View {
         NavigationStack {
@@ -84,8 +80,20 @@ struct ChatView: View {
 
     private var inputBar: some View {
         VStack(alignment: .leading, spacing: 8) {
-            TextField("Ask for translations, feedback, or clarity…", text: $viewModel.inputText, axis: .vertical)
-                .textFieldStyle(.roundedBorder)
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $viewModel.inputText)
+                    .frame(minHeight: 80, maxHeight: 160)
+                    .padding(8)
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                if viewModel.inputText.isEmpty {
+                    Text("Ask for translations, feedback, or clarity…")
+                        .foregroundStyle(Color.secondary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                }
+            }
 
             HStack {
                 if viewModel.isLoading {
