@@ -1,0 +1,13 @@
+# Xcode
+DerivedData/
+*.xcworkspace/
+
+# User data
+*.xcuserstate
+xcuserdata/
+
+# SwiftPM
+.build/
+
+# Secrets
+.env
