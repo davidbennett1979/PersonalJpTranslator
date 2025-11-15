@@ -108,7 +108,7 @@ struct UserProfile: Identifiable, Codable {
         for skill in skills {
             let key = skill.rawValue
             let current = skillScores[key] ?? 0
-            let updated = max(0, current + delta)
+            let updated = min(10, max(-10, current + delta))
             skillScores[key] = updated
         }
         lastUpdated = Date()

@@ -70,16 +70,19 @@ final class SettingsViewModel: ObservableObject {
         var id: String { skill.id }
         let skill: PersonaSkill
         let score: Int
-        let progress: Double
+        let relativeProgress: Double // -1...1
+        var barFill: Double { (relativeProgress + 1) / 2 } // 0...1 for UI
+        var isPositive: Bool { relativeProgress >= 0 }
     }
 
     private static func buildSkillCategories(from profile: UserProfile) -> [SkillCategoryProgress] {
         SkillEngine.categoryMap.map { category, skills in
             let skillProgress = skills.map { skill in
-                SkillProgress(
+                let rawScore = SkillEngine.score(for: skill, in: profile.skillScores)
+                return SkillProgress(
                     skill: skill,
-                    score: SkillEngine.score(for: skill, in: profile.skillScores),
-                    progress: SkillEngine.progress(for: SkillEngine.score(for: skill, in: profile.skillScores))
+                    score: rawScore,
+                    relativeProgress: SkillEngine.progress(for: rawScore)
                 )
             }
             let total = skillProgress.reduce(0) { $0 + $1.score }

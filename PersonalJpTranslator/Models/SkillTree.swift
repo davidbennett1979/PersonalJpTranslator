@@ -166,8 +166,8 @@ struct SkillEngine {
     }
 
     static func progress(for score: Int) -> Double {
-        let normalized = Double(score) / 8.0
-        return min(max(normalized, 0), 1)
+        let clamped = min(max(score, -10), 10)
+        return Double(clamped) / 10.0
     }
 
     static func fallbackSkills(from message: ChatMessage) -> [PersonaSkill] {

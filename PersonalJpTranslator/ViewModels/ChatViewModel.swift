@@ -85,6 +85,13 @@ final class ChatViewModel: ObservableObject {
         store.save()
     }
 
+    func clearChat() {
+        store.updateConversation { conversation in
+            conversation = Conversation()
+        }
+        store.save()
+    }
+
     private func append(message: ChatMessage) {
         store.updateConversation { conversation in
             conversation.appendMessage(message)

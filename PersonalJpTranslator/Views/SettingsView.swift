@@ -29,17 +29,17 @@ struct SettingsView: View {
                                 .foregroundStyle(.secondary)
 
                             ForEach(category.skills) { skill in
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: 6) {
                                     HStack {
                                         Text(skill.skill.title)
                                             .font(.subheadline)
                                         Spacer()
-                                        Text("\(skill.score)")
+                                        Text(verbatim: String(format: "%+d", skill.score))
                                             .font(.caption)
-                                            .foregroundStyle(.secondary)
+                                            .foregroundStyle(skill.isPositive ? .green : .pink)
                                     }
-                                    ProgressView(value: skill.progress)
-                                        .tint(.blue)
+                                    SkillMeterView(relativeProgress: skill.relativeProgress)
+                                        .frame(height: 12)
                                     Text(skill.skill.description)
                                         .font(.caption2)
                                         .foregroundStyle(.secondary)
@@ -81,4 +81,45 @@ struct SettingsView: View {
     let viewModel = SettingsViewModel(store: store)
     SettingsView()
         .environmentObject(viewModel)
+}
+
+struct SkillMeterView: View {
+    let relativeProgress: Double // -1...1
+
+    private var positiveGradient: LinearGradient {
+        LinearGradient(colors: [.green, .blue], startPoint: .leading, endPoint: .trailing)
+    }
+
+    private var negativeGradient: LinearGradient {
+        LinearGradient(colors: [.pink, .purple], startPoint: .trailing, endPoint: .leading)
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            let mid = width / 2
+            let height = geo.size.height
+
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(Color(.tertiarySystemFill))
+                    .frame(width: width, height: height)
+
+                Rectangle()
+                    .fill(Color.secondary.opacity(0.4))
+                    .frame(width: 1, height: height)
+                    .position(x: mid, y: height / 2)
+
+                if relativeProgress != 0 {
+                    let fillWidth = mid * abs(relativeProgress)
+                    let offsetX = relativeProgress >= 0 ? mid : mid - fillWidth
+
+                    Capsule()
+                        .fill(relativeProgress >= 0 ? positiveGradient : negativeGradient)
+                        .frame(width: fillWidth, height: height)
+                        .offset(x: offsetX)
+                }
+            }
+        }
+    }
 }

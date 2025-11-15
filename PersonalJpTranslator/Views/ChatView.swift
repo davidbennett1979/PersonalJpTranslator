@@ -24,6 +24,16 @@ struct ChatView: View {
             .padding(.horizontal)
             .padding(.bottom)
             .navigationTitle("JP Translator")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        viewModel.clearChat()
+                    } label: {
+                        Label("Clear", systemImage: "trash")
+                    }
+                    .disabled(viewModel.messages.isEmpty)
+                }
+            }
         }
         .alert("Error",
                isPresented: Binding(
@@ -49,7 +59,7 @@ struct ChatView: View {
             }
             .background(Color(.systemGroupedBackground))
             .clipShape(RoundedRectangle(cornerRadius: 12))
-            .onChange(of: viewModel.messages) { _, newMessages in
+            .onChange(of: viewModel.messages, initial: true) { _, newMessages in
                 guard let last = newMessages.last else { return }
                 withAnimation {
                     proxy.scrollTo(last.id, anchor: .bottom)
